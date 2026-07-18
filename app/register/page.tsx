@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { signUp } from "@/lib/auth-client";
 
 // Zod registration schema with matching confirmation validation
 const registerSchema = z
@@ -35,6 +36,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
 
   const {
     register,
@@ -52,8 +54,20 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterFormValues) => {
     setLoading(true);
-    // Simulate database record creation
-    await new Promise((resolve) => setTimeout(resolve, 1800));
+    setError("");
+
+    const { error: authError } = await signUp.email({
+      email: data.email,
+      password: data.password,
+      name: data.name,
+    });
+
+    if (authError) {
+      setError(authError.message || "Failed to create account");
+      setLoading(false);
+      return;
+    }
+
     setLoading(false);
     setSuccess(true);
     
@@ -132,6 +146,11 @@ export default function RegisterPage() {
             ) : (
               /* Registration Form */
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                {error && (
+                  <div className="bg-red-50 border border-red-200/50 text-red-700 text-xs rounded-sm p-3 font-light leading-relaxed">
+                    {error}
+                  </div>
+                )}
                 
                 {/* Full Name */}
                 <div className="space-y-1.5">

@@ -178,3 +178,9 @@ export async function fetchProperties(filters: PropertiesFilter): Promise<Proper
 
   return results;
 }
+
+export async function fetchPropertyById(id: string): Promise<Property | undefined> {
+  // Simulate network latency (500ms) for high-end feel
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  return MOCK_PROPERTIES.find((p) => p.id === id);
+}

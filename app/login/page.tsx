@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { signIn } from "@/lib/auth-client";
 
 // Zod validation schema
 const loginSchema = z.object({
@@ -30,6 +31,7 @@ function LoginFormContent() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showGoogleModal, setShowGoogleModal] = useState(false);
+  const [error, setError] = useState("");
 
   // React Hook Form initialization
   const {
@@ -47,11 +49,18 @@ function LoginFormContent() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setLoading(true);
-    // Simulate API request authentication check
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    setError("");
 
-    // Set cookie to authenticate sessions (checked by Next.js middleware)
-    document.cookie = "auth_token=mock-authenticated-session-token; path=/; max-age=86400";
+    const { error: authError } = await signIn.email({
+      email: data.email,
+      password: data.password,
+    });
+
+    if (authError) {
+      setError(authError.message || "Invalid credentials");
+      setLoading(false);
+      return;
+    }
     
     setLoading(false);
     // Redirect to destination
@@ -68,15 +77,23 @@ function LoginFormContent() {
   // Simulates Google OAuth Authentication Flow
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
+    setError("");
     setShowGoogleModal(true);
 
-    // Simulate Google account selection and token response
-    await new Promise((resolve) => setTimeout(resolve, 2500));
+    // Minor transition for natural OAuth redirect
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    document.cookie = "auth_token=mock-google-session-token; path=/; max-age=86400";
-    setGoogleLoading(false);
-    setShowGoogleModal(false);
-    window.location.href = redirectUrl;
+    const { error: authError } = await signIn.social({
+      provider: "google",
+      callbackURL: redirectUrl,
+    });
+
+    if (authError) {
+      setError(authError.message || "Failed to log in with Google");
+      setShowGoogleModal(false);
+      setGoogleLoading(false);
+      return;
+    }
   };
 
   return (
@@ -130,6 +147,11 @@ function LoginFormContent() {
 
           {/* Main Email Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {error && (
+              <div className="bg-red-50 border border-red-200/50 text-red-700 text-xs rounded-sm p-3 font-light leading-relaxed">
+                {error}
+              </div>
+            )}
             <div className="space-y-1.5">
               <label className="block text-[9px] uppercase tracking-[0.15em] text-luxury-charcoal/50 font-bold">
                 Email Address

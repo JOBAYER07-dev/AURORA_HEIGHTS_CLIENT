@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useSession, signOut } from "@/lib/auth-client";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { data: session } = useSession();
+  const isAuthenticated = !!session;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,22 +19,12 @@ export default function Navbar() {
       }
     };
 
-    // Client-side authentication status check (via cookie presence)
-    const checkAuth = () => {
-      const match = document.cookie.match(/(^|;)\s*auth_token\s*=\s*([^;]+)/);
-      setIsAuthenticated(!!match);
-    };
-
     window.addEventListener("scroll", handleScroll);
-    checkAuth();
-
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleLogout = () => {
-    // Clear cookies by setting expiration in the past
-    document.cookie = "auth_token=; path=/; max-age=0";
-    setIsAuthenticated(false);
+  const handleLogout = async () => {
+    await signOut();
     window.location.href = "/";
   };
 
@@ -45,23 +38,23 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
         {/* Logo */}
-        <a href="/" className="group flex flex-col">
+        <Link href="/" className="group flex flex-col">
           <span className="font-serif text-xl md:text-2xl font-bold tracking-[0.25em] text-white transition-colors duration-300 group-hover:text-gold-400">
             AURORA
           </span>
           <span className="text-[7px] tracking-[0.6em] text-gold-300/80 -mt-1 uppercase">
             HEIGHTS
           </span>
-        </a>
+        </Link>
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center space-x-10">
-          <a
+          <Link
             href="/"
             className="text-xs uppercase tracking-[0.2em] text-white/80 hover:text-gold-400 transition-colors duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-gold-400 after:transition-all after:duration-300 hover:after:w-full"
           >
             Home
-          </a>
+          </Link>
           <a
             href="/explore"
             className="text-xs uppercase tracking-[0.2em] text-white/80 hover:text-gold-400 transition-colors duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-gold-400 after:transition-all after:duration-300 hover:after:w-full"
@@ -151,13 +144,13 @@ export default function Navbar() {
         }`}
       >
         <div className="flex flex-col items-center justify-center h-[calc(100vh-120px)] space-y-8 px-6 text-center">
-          <a
+          <Link
             href="/"
             onClick={() => setIsOpen(false)}
             className="text-lg font-serif tracking-[0.2em] text-white/90 hover:text-gold-400 transition-colors"
           >
             Home
-          </a>
+          </Link>
           <a
             href="/explore"
             onClick={() => setIsOpen(false)}

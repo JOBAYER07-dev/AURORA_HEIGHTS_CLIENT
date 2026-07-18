@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 import { Property } from "@/lib/properties";
 export type { Property };
@@ -74,9 +75,12 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             </span>
           </div>
 
-          <button className="px-4 py-2 border border-luxury-charcoal hover:border-gold-500 bg-transparent hover:bg-gold-500 hover:text-white text-luxury-charcoal text-[10px] font-bold uppercase tracking-wider rounded-sm transition-all duration-300 active:scale-[0.97] cursor-pointer">
+          <Link
+            href={`/properties/${property.id}`}
+            className="px-4 py-2 border border-luxury-charcoal hover:border-gold-500 bg-transparent hover:bg-gold-500 hover:text-white text-luxury-charcoal text-[10px] font-bold uppercase tracking-wider rounded-sm transition-all duration-300 active:scale-[0.97] cursor-pointer text-center"
+          >
             View Details
-          </button>
+          </Link>
         </div>
       </div>
     </div>
