@@ -1,43 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import PropertyCard, { Property } from "./PropertyCard";
+import PropertyCard from "./PropertyCard";
 import PropertySkeleton from "./PropertySkeleton";
-
-const MOCK_PROPERTIES: Property[] = [
-  {
-    id: "prop-1",
-    image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80",
-    title: "The Malibu Sentinel",
-    description: "An architectural marvel cantilevered over the Pacific coast. Includes private beach access, a glass-sided infinity pool, and custom smart-home tech.",
-    price: "$18,950,000",
-    location: "Malibu, California",
-  },
-  {
-    id: "prop-2",
-    image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
-    title: "The Bel Air Pavilion",
-    description: "A sprawling estate boasting double-height ceilings, a wine lounge, fully equipped private cinema, and views over the Los Angeles basin.",
-    price: "$24,500,000",
-    location: "Bel Air, California",
-  },
-  {
-    id: "prop-3",
-    image: "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=800&q=80",
-    title: "The Sunset Crest Villa",
-    description: "A masterclass in organic architecture featuring native stone cladding, floating concrete stairs, and retractable walls of glass.",
-    price: "$12,800,000",
-    location: "Los Angeles, California",
-  },
-  {
-    id: "prop-4",
-    image: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80",
-    title: "The Crestview Manor",
-    description: "Nestled in private woodlands with majestic views. Designed with sustainable materials, a geothermal wellness spa, and an orchard path.",
-    price: "$15,200,000",
-    location: "Beverly Hills, California",
-  },
-];
+import { MOCK_PROPERTIES, Property } from "@/lib/properties";
 
 export default function PropertiesGrid() {
   const [properties, setProperties] = useState<Property[]>([]);

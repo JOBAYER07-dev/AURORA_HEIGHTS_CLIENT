@@ -2,14 +2,8 @@
 
 import Image from "next/image";
 
-export interface Property {
-  id: string;
-  image: string;
-  title: string;
-  description: string;
-  price: string;
-  location: string;
-}
+import { Property } from "@/lib/properties";
+export type { Property };
 
 interface PropertyCardProps {
   property: Property;
@@ -76,7 +70,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
               Asking Price
             </span>
             <span className="font-serif text-base font-semibold text-luxury-charcoal">
-              {property.price}
+              {property.priceStr}
             </span>
           </div>
 

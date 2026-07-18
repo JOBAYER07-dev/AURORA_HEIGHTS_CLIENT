@@ -39,10 +39,22 @@ export default function Navbar() {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center space-x-10">
+          <a
+            href="/"
+            className="text-xs uppercase tracking-[0.2em] text-white/80 hover:text-gold-400 transition-colors duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-gold-400 after:transition-all after:duration-300 hover:after:w-full"
+          >
+            Home
+          </a>
+          <a
+            href="/explore"
+            className="text-xs uppercase tracking-[0.2em] text-white/80 hover:text-gold-400 transition-colors duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-gold-400 after:transition-all after:duration-300 hover:after:w-full"
+          >
+            Explore
+          </a>
           {["Residences", "Amenities", "Location", "Philosophy"].map((item) => (
             <a
               key={item}
-              href={`#${item.toLowerCase()}`}
+              href={`/#${item.toLowerCase()}`}
               className="text-xs uppercase tracking-[0.2em] text-white/80 hover:text-gold-400 transition-colors duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-gold-400 after:transition-all after:duration-300 hover:after:w-full"
             >
               {item}
@@ -93,10 +105,24 @@ export default function Navbar() {
         }`}
       >
         <div className="flex flex-col items-center justify-center h-[calc(100vh-120px)] space-y-8 px-6 text-center">
+          <a
+            href="/"
+            onClick={() => setIsOpen(false)}
+            className="text-lg font-serif tracking-[0.2em] text-white/90 hover:text-gold-400 transition-colors"
+          >
+            Home
+          </a>
+          <a
+            href="/explore"
+            onClick={() => setIsOpen(false)}
+            className="text-lg font-serif tracking-[0.2em] text-white/90 hover:text-gold-400 transition-colors"
+          >
+            Explore
+          </a>
           {["Residences", "Amenities", "Location", "Philosophy"].map((item) => (
             <a
               key={item}
-              href={`#${item.toLowerCase()}`}
+              href={`/#${item.toLowerCase()}`}
               onClick={() => setIsOpen(false)}
               className="text-lg font-serif tracking-[0.2em] text-white/90 hover:text-gold-400 transition-colors"
             >

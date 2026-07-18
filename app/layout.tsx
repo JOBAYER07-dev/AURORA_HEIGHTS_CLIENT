@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import LenisProvider from "@/components/LenisProvider";
+import QueryProvider from "@/components/QueryProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,10 +37,13 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-[#faf8f5] text-[#111111]">
         <LenisProvider>
-          {children}
+          <QueryProvider>
+            {children}
+          </QueryProvider>
         </LenisProvider>
       </body>
     </html>
   );
 }
+
 
