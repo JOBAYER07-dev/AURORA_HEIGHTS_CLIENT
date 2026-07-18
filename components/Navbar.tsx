@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,9 +15,25 @@ export default function Navbar() {
         setScrolled(false);
       }
     };
+
+    // Client-side authentication status check (via cookie presence)
+    const checkAuth = () => {
+      const match = document.cookie.match(/(^|;)\s*auth_token\s*=\s*([^;]+)/);
+      setIsAuthenticated(!!match);
+    };
+
     window.addEventListener("scroll", handleScroll);
+    checkAuth();
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleLogout = () => {
+    // Clear cookies by setting expiration in the past
+    document.cookie = "auth_token=; path=/; max-age=0";
+    setIsAuthenticated(false);
+    window.location.href = "/";
+  };
 
   return (
     <nav
@@ -28,7 +45,7 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
         {/* Logo */}
-        <a href="#" className="group flex flex-col">
+        <a href="/" className="group flex flex-col">
           <span className="font-serif text-xl md:text-2xl font-bold tracking-[0.25em] text-white transition-colors duration-300 group-hover:text-gold-400">
             AURORA
           </span>
@@ -51,25 +68,54 @@ export default function Navbar() {
           >
             Explore
           </a>
-          {["Residences", "Amenities", "Location", "Philosophy"].map((item) => (
-            <a
-              key={item}
-              href={`/#${item.toLowerCase()}`}
-              className="text-xs uppercase tracking-[0.2em] text-white/80 hover:text-gold-400 transition-colors duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-gold-400 after:transition-all after:duration-300 hover:after:w-full"
-            >
-              {item}
-            </a>
-          ))}
+
+          {/* Protected Links visible only when authenticated */}
+          {isAuthenticated ? (
+            <>
+              <a
+                href="/items/add"
+                className="text-xs uppercase tracking-[0.2em] text-gold-300 hover:text-white transition-colors duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-gold-400 after:transition-all after:duration-300 hover:after:w-full"
+              >
+                Add Listing
+              </a>
+              <a
+                href="/items/manage"
+                className="text-xs uppercase tracking-[0.2em] text-gold-300 hover:text-white transition-colors duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-gold-400 after:transition-all after:duration-300 hover:after:w-full"
+              >
+                Manage
+              </a>
+            </>
+          ) : (
+            // Public anchors
+            ["Residences", "Amenities", "Location", "Philosophy"].map((item) => (
+              <a
+                key={item}
+                href={`/#${item.toLowerCase()}`}
+                className="text-xs uppercase tracking-[0.2em] text-white/80 hover:text-gold-400 transition-colors duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-gold-400 after:transition-all after:duration-300 hover:after:w-full"
+              >
+                {item}
+              </a>
+            ))
+          )}
         </div>
 
-        {/* CTA Button */}
+        {/* Desktop CTA Action Button */}
         <div className="hidden md:block">
-          <a
-            href="#inquire"
-            className="inline-flex items-center justify-center px-6 py-2.5 border border-gold-400/50 hover:border-gold-400 bg-transparent hover:bg-gold-500/10 text-gold-300 hover:text-white font-medium text-xs uppercase tracking-[0.25em] rounded-sm transition-all duration-500 ease-in-out shadow-lg shadow-gold-500/5"
-          >
-            Inquire Now
-          </a>
+          {isAuthenticated ? (
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center justify-center px-6 py-2.5 border border-red-500/50 hover:border-red-500 bg-transparent hover:bg-red-500/10 text-red-400 hover:text-white font-medium text-xs uppercase tracking-[0.25em] rounded-sm transition-all duration-500 ease-in-out shadow-lg cursor-pointer"
+            >
+              Sign Out
+            </button>
+          ) : (
+            <a
+              href="/login"
+              className="inline-flex items-center justify-center px-6 py-2.5 border border-gold-400/50 hover:border-gold-400 bg-transparent hover:bg-gold-500/10 text-gold-300 hover:text-white font-medium text-xs uppercase tracking-[0.25em] rounded-sm transition-all duration-500 ease-in-out shadow-lg shadow-gold-500/5"
+            >
+              Portal Login
+            </a>
+          )}
         </div>
 
         {/* Mobile Hamburger Button */}
@@ -119,23 +165,54 @@ export default function Navbar() {
           >
             Explore
           </a>
-          {["Residences", "Amenities", "Location", "Philosophy"].map((item) => (
-            <a
-              key={item}
-              href={`/#${item.toLowerCase()}`}
-              onClick={() => setIsOpen(false)}
-              className="text-lg font-serif tracking-[0.2em] text-white/90 hover:text-gold-400 transition-colors"
-            >
-              {item}
-            </a>
-          ))}
-          <a
-            href="#inquire"
-            onClick={() => setIsOpen(false)}
-            className="w-full max-w-[260px] py-3.5 border border-gold-400 bg-gold-500/10 text-gold-300 font-medium text-xs uppercase tracking-[0.25em] rounded-sm transition-all duration-300"
-          >
-            Inquire Now
-          </a>
+
+          {isAuthenticated ? (
+            <>
+              <a
+                href="/items/add"
+                onClick={() => setIsOpen(false)}
+                className="text-lg font-serif tracking-[0.2em] text-gold-300 hover:text-white transition-colors"
+              >
+                Add Listing
+              </a>
+              <a
+                href="/items/manage"
+                onClick={() => setIsOpen(false)}
+                className="text-lg font-serif tracking-[0.2em] text-gold-300 hover:text-white transition-colors"
+              >
+                Manage Portfolio
+              </a>
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  handleLogout();
+                }}
+                className="w-full max-w-[260px] py-3.5 border border-red-500 bg-red-500/10 text-red-400 font-medium text-xs uppercase tracking-[0.25em] rounded-sm transition-all duration-300 cursor-pointer"
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <>
+              {["Residences", "Amenities", "Location", "Philosophy"].map((item) => (
+                <a
+                  key={item}
+                  href={`/#${item.toLowerCase()}`}
+                  onClick={() => setIsOpen(false)}
+                  className="text-lg font-serif tracking-[0.2em] text-white/90 hover:text-gold-400 transition-colors"
+                >
+                  {item}
+                </a>
+              ))}
+              <a
+                href="/login"
+                onClick={() => setIsOpen(false)}
+                className="w-full max-w-[260px] py-3.5 border border-gold-400 bg-gold-500/10 text-gold-300 font-medium text-xs uppercase tracking-[0.25em] rounded-sm transition-all duration-300"
+              >
+                Portal Login
+              </a>
+            </>
+          )}
         </div>
       </div>
     </nav>
