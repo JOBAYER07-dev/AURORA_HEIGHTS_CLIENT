@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
 import PropertySkeleton from "@/components/PropertySkeleton";
 import { fetchProperties } from "@/lib/properties";
+import AIPropertyFinder from "@/components/AIPropertyFinder";
 
 export default function ExplorePage() {
   // Search state
@@ -23,6 +24,8 @@ export default function ExplorePage() {
   // Pagination state
   const [page, setPage] = useState(1);
   const limit = 12;
+
+  const [searchMode, setSearchMode] = useState<"manual" | "ai">("manual");
 
   // Reset page to 1 on filter/search parameters modification
   useEffect(() => {
@@ -70,8 +73,36 @@ export default function ExplorePage() {
             </p>
           </div>
 
-          {/* Search, Filter & Sort Control Panel */}
-          <div className="bg-white border border-luxury-sand/20 rounded-xl p-6 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.02)] mb-12 space-y-6">
+          {/* Search Mode Switcher */}
+          <div className="flex border-b border-luxury-sand/20 mb-8 max-w-xs sm:max-w-sm">
+            <button
+              onClick={() => setSearchMode("manual")}
+              className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest text-center border-b-2 transition-all cursor-pointer ${
+                searchMode === "manual"
+                  ? "border-gold-500 text-gold-700"
+                  : "border-transparent text-luxury-charcoal/40 hover:text-luxury-charcoal"
+              }`}
+            >
+              Manual Filters
+            </button>
+            <button
+              onClick={() => setSearchMode("ai")}
+              className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest text-center border-b-2 transition-all cursor-pointer ${
+                searchMode === "ai"
+                  ? "border-gold-500 text-gold-700"
+                  : "border-transparent text-luxury-charcoal/40 hover:text-luxury-charcoal"
+              }`}
+            >
+              Ask AI Finder
+            </button>
+          </div>
+
+          {searchMode === "ai" ? (
+            <AIPropertyFinder variant="explore" />
+          ) : (
+            <>
+              {/* Search, Filter & Sort Control Panel */}
+              <div className="bg-white border border-luxury-sand/20 rounded-xl p-6 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.02)] mb-12 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
               
               {/* Robust Search Input (5 Columns) */}
@@ -274,6 +305,8 @@ export default function ExplorePage() {
                 Clear All Filters
               </button>
             </div>
+          )}
+          </>
           )}
 
         </div>

@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
+import AIPropertyFinder from "@/components/AIPropertyFinder";
 import Residences from "@/components/Residences";
 import PropertiesGrid from "@/components/PropertiesGrid";
 import StatsSection from "@/components/StatsSection";
@@ -13,6 +14,9 @@ export default function Home() {
       <Navbar />
       <main className="flex flex-col min-h-screen">
         <Hero />
+        
+        {/* AI Property Finder Section */}
+        <AIPropertyFinder variant="hero" />
         
         {/* Residences Collections Section */}
         <Residences />
