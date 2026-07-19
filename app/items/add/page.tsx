@@ -91,7 +91,8 @@ export default function AddItemPage() {
         user: session.user.id,
       };
 
-      const res = await fetch("http://localhost:5000/api/v1/properties/create-property", {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+      const res = await fetch(`${apiBase}/properties/create-property`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

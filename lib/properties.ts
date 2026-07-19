@@ -52,7 +52,8 @@ export function formatPrice(price: number): string {
 }
 
 export async function fetchProperties(filters: PropertiesFilter): Promise<PropertiesResponse> {
-  const url = new URL("http://localhost:5000/api/v1/properties");
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+  const url = new URL(`${apiBase}/properties`);
 
   if (filters.search.trim()) {
     url.searchParams.append("searchTerm", filters.search);
@@ -102,7 +103,8 @@ export async function fetchProperties(filters: PropertiesFilter): Promise<Proper
 }
 
 export async function fetchPropertyById(id: string): Promise<Property | undefined> {
-  const res = await fetch(`http://localhost:5000/api/v1/properties/${id}`, {
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+  const res = await fetch(`${apiBase}/properties/${id}`, {
     cache: "no-store",
   });
   

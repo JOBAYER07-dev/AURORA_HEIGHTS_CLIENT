@@ -38,8 +38,9 @@ export default function AIChatWidget() {
 
   const fetchSuggestions = async (lastMsg: string) => {
     try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
       const res = await fetch(
-        `http://localhost:5000/api/v1/ai-chat/suggestions?lastMessage=${encodeURIComponent(
+        `${apiBase}/ai-chat/suggestions?lastMessage=${encodeURIComponent(
           lastMsg
         )}`
       );
@@ -76,7 +77,8 @@ export default function AIChatWidget() {
         text: m.text,
       }));
 
-      const res = await fetch("http://localhost:5000/api/v1/ai-chat/message", {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+      const res = await fetch(`${apiBase}/ai-chat/message`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

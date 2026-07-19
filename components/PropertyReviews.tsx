@@ -52,7 +52,8 @@ export default function PropertyReviews({ propertyId, initialReviews = [] }: Pro
     setLoading(true);
 
     try {
-      const res = await fetch(`http://localhost:5000/api/v1/properties/${propertyId}/reviews`, {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+      const res = await fetch(`${apiBase}/properties/${propertyId}/reviews`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

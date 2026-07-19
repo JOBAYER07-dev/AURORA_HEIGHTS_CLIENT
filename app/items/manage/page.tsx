@@ -39,7 +39,8 @@ export default function ManageItemsPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("http://localhost:5000/api/v1/properties/my-properties", {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+      const res = await fetch(`${apiBase}/properties/my-properties`, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -65,7 +66,8 @@ export default function ManageItemsPage() {
     if (!confirmDelete) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/v1/properties/${id}`, {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+      const res = await fetch(`${apiBase}/properties/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
