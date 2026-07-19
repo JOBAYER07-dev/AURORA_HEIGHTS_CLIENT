@@ -9,6 +9,7 @@ export interface Review {
 export interface Property {
   _id: string;
   title: string;
+  shortDescription: string;
   description: string;
   price: number;
   location: string;

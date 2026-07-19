@@ -16,6 +16,7 @@ export default function AddItemPage() {
   const [category, setCategory] = useState("Villa");
   const [price, setPrice] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [shortDescription, setShortDescription] = useState("");
   const [description, setDescription] = useState("");
 
   // UI state feedback
@@ -53,29 +54,31 @@ export default function AddItemPage() {
       return;
     }
 
-    if (!title || !location || !price || !imageUrl || !description) {
+    if (!title || !location || !price || !shortDescription || !description) {
       setError("Please fill out all fields.");
       return;
     }
 
-    // Validate image URL hostname to match next.config.ts remotePatterns
-    try {
-      const parsedUrl = new URL(imageUrl);
-      const allowedHostnames = [
-        "images.unsplash.com",
-        "example.com",
-        "images.pexels.com",
-        "plus.unsplash.com",
-      ];
-      if (!allowedHostnames.includes(parsedUrl.hostname)) {
-        setError(
-          `Image URL host '${parsedUrl.hostname}' is not whitelisted. Supported hosts: images.unsplash.com, images.pexels.com, plus.unsplash.com, or example.com.`
-        );
+    // Validate image URL hostname to match next.config.ts remotePatterns if provided
+    if (imageUrl.trim()) {
+      try {
+        const parsedUrl = new URL(imageUrl);
+        const allowedHostnames = [
+          "images.unsplash.com",
+          "example.com",
+          "images.pexels.com",
+          "plus.unsplash.com",
+        ];
+        if (!allowedHostnames.includes(parsedUrl.hostname)) {
+          setError(
+            `Image URL host '${parsedUrl.hostname}' is not whitelisted. Supported hosts: images.unsplash.com, images.pexels.com, plus.unsplash.com, or example.com.`
+          );
+          return;
+        }
+      } catch (e) {
+        setError("Please enter a valid absolute Image URL (starting with http:// or https://).");
         return;
       }
-    } catch (e) {
-      setError("Please enter a valid absolute Image URL (starting with http:// or https://).");
-      return;
     }
 
     setLoading(true);
@@ -83,12 +86,12 @@ export default function AddItemPage() {
     try {
       const payload = {
         title,
+        shortDescription,
         description,
         price: Number(price),
         location,
         category,
-        images: [imageUrl],
-        user: session.user.id,
+        images: imageUrl.trim() ? [imageUrl] : [],
       };
 
       const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
@@ -114,6 +117,7 @@ export default function AddItemPage() {
       setCategory("Villa");
       setPrice("");
       setImageUrl("");
+      setShortDescription("");
       setDescription("");
 
       // Redirect to explore page after brief success delay
@@ -244,11 +248,10 @@ export default function AddItemPage() {
 
               <div className="space-y-2">
                 <label className="block text-[10px] uppercase tracking-[0.15em] text-luxury-charcoal/50 font-bold">
-                  Image URL
+                  Image URL (Optional)
                 </label>
                 <input
                   type="url"
-                  required
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
                   placeholder="https://images.unsplash.com..."
@@ -259,7 +262,22 @@ export default function AddItemPage() {
 
             <div className="space-y-2">
               <label className="block text-[10px] uppercase tracking-[0.15em] text-luxury-charcoal/50 font-bold">
-                Detailed Description
+                Short Description
+              </label>
+              <input
+                type="text"
+                required
+                maxLength={150}
+                value={shortDescription}
+                onChange={(e) => setShortDescription(e.target.value)}
+                placeholder="A brief one-line summary for listing cards, e.g. 'Cliffside villa with infinity pool and ocean views'"
+                className="w-full bg-luxury-cream border border-luxury-sand/40 rounded-sm py-2.5 px-3 text-xs text-luxury-charcoal placeholder-luxury-charcoal/40 focus:outline-none focus:border-gold-500 transition-all"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-[10px] uppercase tracking-[0.15em] text-luxury-charcoal/50 font-bold">
+                Full Description
               </label>
               <textarea
                 rows={4}

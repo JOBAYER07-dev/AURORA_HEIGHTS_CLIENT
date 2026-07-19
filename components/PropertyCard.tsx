@@ -79,7 +79,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
 
           {/* Short Description */}
           <p className="text-xs text-luxury-charcoal/60 font-light leading-relaxed line-clamp-2">
-            {property.description}
+            {property.shortDescription}
           </p>
         </div>
 
