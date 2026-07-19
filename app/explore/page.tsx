@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -20,11 +20,23 @@ export default function ExplorePage() {
   // Sorting state
   const [sortBy, setSortBy] = useState("none");
 
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const limit = 12;
+
+  // Reset page to 1 on filter/search parameters modification
+  useEffect(() => {
+    setPage(1);
+  }, [search, propertyType, minPrice, maxPrice, sortBy]);
+
   // TanStack Query for caching and state loading updates
-  const { data: properties = [], isLoading, isFetching } = useQuery({
-    queryKey: ["properties", search, propertyType, minPrice, maxPrice, sortBy],
-    queryFn: () => fetchProperties({ search, propertyType, minPrice, maxPrice, sortBy }),
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ["properties", search, propertyType, minPrice, maxPrice, sortBy, page],
+    queryFn: () => fetchProperties({ search, propertyType, minPrice, maxPrice, sortBy, page, limit }),
   });
+
+  const properties = data?.data || [];
+  const meta = data?.meta || { total: 0, page: 1, limit: 12, totalPages: 1 };
 
   const handleResetFilters = () => {
     setSearch("");
@@ -32,6 +44,7 @@ export default function ExplorePage() {
     setMinPrice(0);
     setMaxPrice(0);
     setSortBy("none");
+    setPage(1);
   };
 
   return (
@@ -199,10 +212,51 @@ export default function ExplorePage() {
               ))}
             </div>
           ) : properties.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 animate-[fadeIn_0.5s_ease-out]">
-              {properties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
-              ))}
+            <div className="space-y-12">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 animate-[fadeIn_0.5s_ease-out]">
+                {properties.map((property) => (
+                  <PropertyCard key={property._id} property={property} />
+                ))}
+              </div>
+
+              {/* Pagination UI */}
+              {!isLoading && meta.totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 pt-12 border-t border-luxury-sand/10">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="px-4 py-2 border border-luxury-sand text-[10px] uppercase font-bold tracking-wider rounded-sm transition-all text-luxury-charcoal hover:bg-luxury-charcoal hover:text-white hover:border-luxury-charcoal disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-luxury-charcoal disabled:hover:border-luxury-sand cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+
+                  {Array.from({ length: meta.totalPages }).map((_, idx) => {
+                    const pageNum = idx + 1;
+                    const isActive = pageNum === page;
+                    return (
+                      <button
+                        key={`page-btn-${pageNum}`}
+                        onClick={() => setPage(pageNum)}
+                        className={`w-8 h-8 flex items-center justify-center text-xs font-semibold rounded-sm transition-all cursor-pointer ${
+                          isActive
+                            ? "bg-gold-500 text-white shadow-md shadow-gold-500/10"
+                            : "border border-luxury-sand/40 hover:border-gold-500 text-luxury-charcoal hover:text-gold-700 bg-white"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
+                    disabled={page === meta.totalPages}
+                    className="px-4 py-2 border border-luxury-sand text-[10px] uppercase font-bold tracking-wider rounded-sm transition-all text-luxury-charcoal hover:bg-luxury-charcoal hover:text-white hover:border-luxury-charcoal disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-luxury-charcoal disabled:hover:border-luxury-sand cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="w-full bg-white border border-luxury-sand/20 rounded-xl p-16 text-center space-y-4">

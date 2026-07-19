@@ -61,6 +61,18 @@ export default function Navbar() {
           >
             Explore
           </a>
+          <Link
+            href="/about"
+            className="text-xs uppercase tracking-[0.2em] text-white/80 hover:text-gold-400 transition-colors duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-gold-400 after:transition-all after:duration-300 hover:after:w-full"
+          >
+            About
+          </Link>
+          <Link
+            href="/contact"
+            className="text-xs uppercase tracking-[0.2em] text-white/80 hover:text-gold-400 transition-colors duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-gold-400 after:transition-all after:duration-300 hover:after:w-full"
+          >
+            Contact
+          </Link>
 
           {/* Protected Links visible only when authenticated */}
           {isAuthenticated ? (
@@ -158,6 +170,20 @@ export default function Navbar() {
           >
             Explore
           </a>
+          <Link
+            href="/about"
+            onClick={() => setIsOpen(false)}
+            className="text-lg font-serif tracking-[0.2em] text-white/90 hover:text-gold-400 transition-colors"
+          >
+            About
+          </Link>
+          <Link
+            href="/contact"
+            onClick={() => setIsOpen(false)}
+            className="text-lg font-serif tracking-[0.2em] text-white/90 hover:text-gold-400 transition-colors"
+          >
+            Contact
+          </Link>
 
           {isAuthenticated ? (
             <>

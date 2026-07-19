@@ -2,6 +2,8 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Residences from "@/components/Residences";
 import PropertiesGrid from "@/components/PropertiesGrid";
+import StatsSection from "@/components/StatsSection";
+import TestimonialsSection from "@/components/TestimonialsSection";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 
@@ -12,13 +14,14 @@ export default function Home() {
       <main className="flex flex-col min-h-screen">
         <Hero />
         
-        {/* Residences Section */}
-        <div id="residences">
-          <Residences />
-        </div>
+        {/* Residences Collections Section */}
+        <Residences />
         
         {/* Properties Grid Section */}
         <PropertiesGrid />
+
+        {/* Stats Count Section */}
+        <StatsSection />
 
         {/* Amenities Section */}
         <div id="amenities">
@@ -153,6 +156,9 @@ export default function Home() {
             </div>
           </section>
         </div>
+
+        {/* Testimonials Section */}
+        <TestimonialsSection />
 
         {/* Philosophy Section */}
         <div id="philosophy">

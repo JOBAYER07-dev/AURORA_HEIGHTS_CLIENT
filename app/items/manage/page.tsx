@@ -1,11 +1,109 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
-import { MOCK_PROPERTIES } from "@/lib/properties";
+import { fetchProperties, Property, formatPrice } from "@/lib/properties";
+import { useSession } from "@/lib/auth-client";
+import PropertyCategoryChart from "@/components/PropertyCategoryChart";
 
 export default function ManageItemsPage() {
+  const { data: session, isPending: authPending } = useSession();
+  const router = useRouter();
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Route guard: only redirect after authPending has resolved to false.
+  // Prevents premature redirect caused by Better Auth briefly emitting
+  // { isPending: false, data: null } before its internal fetch fires.
+  const pendingSettled = useRef(false);
+  useEffect(() => {
+    if (authPending) {
+      pendingSettled.current = false;
+      return;
+    }
+    pendingSettled.current = true;
+  }, [authPending]);
+
+  useEffect(() => {
+    if (pendingSettled.current && !authPending && !session) {
+      router.push("/login?redirect=/items/manage");
+    }
+  }, [session, authPending, router]);
+
+  const loadProperties = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("http://localhost:5000/api/v1/properties/my-properties", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to load listings");
+      }
+      const propertiesList = Array.isArray(data) ? data : (data.data || []);
+      setProperties(propertiesList);
+    } catch (err: any) {
+      setError(err.message || "Failed to load listings");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string, title: string) => {
+    const confirmDelete = window.confirm(
+      `Are you sure you want to permanently remove the signature estate "${title}" from the registry?`
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/v1/properties/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to delete property");
+      }
+      loadProperties();
+    } catch (err: any) {
+      alert(err.message || "An unexpected error occurred while deleting.");
+    }
+  };
+
+  useEffect(() => {
+    if (session) {
+      loadProperties();
+    }
+  }, [session]);
+
+  if (authPending) {
+    return (
+      <>
+        <Navbar />
+        <div className="h-[70px] bg-luxury-dark" />
+        <main className="flex-1 bg-luxury-cream min-h-screen flex items-center justify-center">
+          <div className="text-luxury-charcoal/50 text-xs uppercase tracking-widest font-semibold animate-pulse">
+            Verifying Admin Access...
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  if (!session) {
+    return null; // Redirecting to login...
+  }
+
   return (
     <>
       <Navbar />
@@ -48,58 +146,90 @@ export default function ManageItemsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-luxury-sand/20 text-xs text-luxury-charcoal">
-                  {MOCK_PROPERTIES.map((prop) => (
-                    <tr key={prop.id} className="hover:bg-luxury-cream/30 transition-colors">
-                      <td className="py-4 px-6 flex items-center gap-4 min-w-[280px]">
-                        <div className="relative w-12 aspect-[4/3] rounded-sm overflow-hidden bg-luxury-dark flex-shrink-0">
-                          <Image
-                            src={prop.image}
-                            alt={prop.title}
-                            fill
-                            sizes="50px"
-                            className="object-cover"
-                          />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="font-medium font-serif text-sm text-luxury-charcoal">
-                            {prop.title}
-                          </span>
-                          <span className="text-[10px] text-luxury-charcoal/40 font-light">
-                            {prop.sqft} SQ FT | {prop.beds} Beds
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-6 text-luxury-charcoal/70 font-light">
-                        {prop.location}
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className="inline-block bg-luxury-sand/30 border border-luxury-sand/40 text-[9px] font-bold uppercase tracking-wider text-gold-800 px-2 py-0.5 rounded-sm">
-                          {prop.type}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6 font-semibold">
-                        {prop.priceStr}
-                      </td>
-                      <td className="py-4 px-6 text-right space-x-3 min-w-[150px]">
-                        <button
-                          onClick={() => alert(`Edit simulated for ${prop.title}`)}
-                          className="text-[10px] font-bold uppercase tracking-wider text-gold-700 hover:text-luxury-charcoal transition-colors cursor-pointer"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => alert(`Delete simulated for ${prop.title}`)}
-                          className="text-[10px] font-bold uppercase tracking-wider text-red-600 hover:text-red-800 transition-colors cursor-pointer"
-                        >
-                          Delete
-                        </button>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={5} className="py-8 px-6 text-center text-luxury-charcoal/50 animate-pulse text-xs tracking-widest font-semibold uppercase">
+                        Loading Residences Portfolio...
                       </td>
                     </tr>
-                  ))}
+                  ) : error ? (
+                    <tr>
+                      <td colSpan={5} className="py-8 px-6 text-center text-red-600 text-xs font-light">
+                        {error}
+                      </td>
+                    </tr>
+                  ) : properties.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-8 px-6 text-center text-luxury-charcoal/50 text-xs font-light">
+                        No signature estates found in database registry.
+                      </td>
+                    </tr>
+                  ) : (
+                    properties.map((prop) => {
+                      const imageUrl = prop.images?.[0] || "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80";
+                      const category = prop.category || "Residence";
+                      const beds = prop.beds || 4;
+                      const sqft = prop.sqft || 5200;
+                      
+                      return (
+                        <tr key={prop._id} className="hover:bg-luxury-cream/30 transition-colors">
+                          <td className="py-4 px-6 flex items-center gap-4 min-w-[280px]">
+                            <div className="relative w-12 aspect-[4/3] rounded-sm overflow-hidden bg-luxury-dark flex-shrink-0">
+                              <Image
+                                src={imageUrl}
+                                alt={prop.title}
+                                fill
+                                sizes="50px"
+                                className="object-cover"
+                              />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="font-medium font-serif text-sm text-luxury-charcoal">
+                                {prop.title}
+                              </span>
+                              <span className="text-[10px] text-luxury-charcoal/40 font-light">
+                                {sqft.toLocaleString()} SQ FT | {beds} Beds
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-6 text-luxury-charcoal/70 font-light">
+                            {prop.location}
+                          </td>
+                          <td className="py-4 px-6">
+                            <span className="inline-block bg-luxury-sand/30 border border-luxury-sand/40 text-[9px] font-bold uppercase tracking-wider text-gold-800 px-2 py-0.5 rounded-sm">
+                              {category}
+                            </span>
+                          </td>
+                          <td className="py-4 px-6 font-semibold">
+                            {formatPrice(prop.price)}
+                          </td>
+                          <td className="py-4 px-6 text-right space-x-4 min-w-[150px]">
+                            <Link
+                              href={`/properties/${prop._id}`}
+                              className="text-[10px] font-bold uppercase tracking-wider text-gold-700 hover:text-luxury-charcoal transition-colors cursor-pointer"
+                            >
+                              View
+                            </Link>
+                            <button
+                              onClick={() => handleDelete(prop._id, prop.title)}
+                              className="text-[10px] font-bold uppercase tracking-wider text-red-600 hover:text-red-800 transition-colors cursor-pointer"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
+
+          {/* Recharts analytics — listings by category */}
+          {!loading && !error && properties.length > 0 && (
+            <PropertyCategoryChart properties={properties} />
+          )}
         </div>
       </main>
       <Footer />

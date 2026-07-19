@@ -3,20 +3,35 @@
 import { useState, useEffect } from "react";
 import PropertyCard from "./PropertyCard";
 import PropertySkeleton from "./PropertySkeleton";
-import { MOCK_PROPERTIES, Property } from "@/lib/properties";
+import { fetchProperties, Property } from "@/lib/properties";
 
 export default function PropertiesGrid() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const loadProperties = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetchProperties({
+        search: "",
+        propertyType: "all",
+        minPrice: 0,
+        maxPrice: 0,
+        sortBy: "none",
+      });
+      // Slice to 4 featured properties for the homepage
+      setProperties(response.data.slice(0, 4));
+    } catch (err: any) {
+      setError(err.message || "Failed to load listings from database");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Simulate fetching data from a database with a 2 second delay
-    const timer = setTimeout(() => {
-      setProperties(MOCK_PROPERTIES);
-      setLoading(false);
-    }, 2000);
-
-    return () => clearTimeout(timer);
+    loadProperties();
   }, []);
 
   return (
@@ -33,18 +48,10 @@ export default function PropertiesGrid() {
             </h2>
           </div>
           
-          {/* Simulated Refetch / Reset button for demonstrating the skeleton load state again */}
           <button
-            onClick={() => {
-              setLoading(true);
-              setProperties([]);
-              setTimeout(() => {
-                setProperties(MOCK_PROPERTIES);
-                setLoading(false);
-              }, 2000);
-            }}
+            onClick={loadProperties}
             className="flex items-center gap-2 px-5 py-2.5 border border-luxury-sand text-luxury-charcoal/80 hover:text-gold-700 hover:border-gold-500 text-[10px] font-bold uppercase tracking-wider rounded-sm transition-all duration-300 cursor-pointer active:scale-[0.98]"
-            title="Reload and show skeleton animation"
+            title="Reload listings from backend API"
           >
             <svg
               className={`w-3.5 h-3.5 ${loading ? "animate-spin text-gold-500" : ""}`}
@@ -59,9 +66,15 @@ export default function PropertiesGrid() {
                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M21 12v5h-5.582"
               />
             </svg>
-            Re-simulate Fetch
+            Reload From API
           </button>
         </div>
+
+        {error && (
+          <div className="w-full bg-red-50 border border-red-200/50 rounded-xl p-8 text-center text-red-700 text-xs font-light mb-8">
+            {error}
+          </div>
+        )}
 
         {/* 4 Cards Grid - 1 Col on Mobile, 2 Cols on Tablet, 4 Cols on Desktop */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
@@ -70,7 +83,7 @@ export default function PropertiesGrid() {
                 <PropertySkeleton key={`skeleton-${idx}`} />
               ))
             : properties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
+                <PropertyCard key={property._id} property={property} />
               ))}
         </div>
       </div>

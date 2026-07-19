@@ -25,12 +25,12 @@ const COLLECTIONS = [
 
 export default function Residences() {
   return (
-    <section id="residences" className="py-24 md:py-36 bg-luxury-cream border-t border-luxury-sand/30">
+    <section id="collections" className="py-24 md:py-36 bg-luxury-cream border-t border-luxury-sand/30">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         {/* Header Block */}
         <div className="max-w-2xl mb-20 space-y-4 md:space-y-6">
           <span className="text-xs font-bold tracking-[0.3em] text-gold-600 uppercase">
-            THE ARCHITECTURAL COLLECTIONS
+            EXPLORE BY COLLECTION
           </span>
           <h2 className="text-3xl md:text-5xl font-serif font-light text-luxury-charcoal leading-tight tracking-wide">
             Curated Spaces Built to <br />

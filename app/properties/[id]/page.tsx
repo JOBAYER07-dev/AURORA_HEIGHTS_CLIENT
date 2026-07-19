@@ -2,8 +2,11 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 import Link from "next/link";
-import { fetchPropertyById } from "@/lib/properties";
+import { fetchPropertyById, fetchProperties, formatPrice } from "@/lib/properties";
 import PropertyContactForm from "@/components/PropertyContactForm";
+import PropertyCard from "@/components/PropertyCard";
+import PropertyImageGallery from "@/components/PropertyImageGallery";
+import PropertyReviews from "@/components/PropertyReviews";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -39,6 +42,26 @@ export default async function PropertyDetailsPage({ params }: PageProps) {
       </>
     );
   }
+
+  const imageUrl = property.images?.[0] || "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80";
+  const category = property.category || "Residence";
+  const beds = property.beds || 4;
+  const baths = property.baths || 4.5;
+  const sqft = property.sqft || 5200;
+  const priceStr = formatPrice(property.price);
+
+  // Fetch related residences from backend
+  const relatedResponse = await fetchProperties({
+    search: "",
+    propertyType: category,
+    minPrice: 0,
+    maxPrice: 0,
+    sortBy: "none",
+  });
+  
+  const relatedResidences = relatedResponse.data
+    .filter((p) => p._id !== property._id)
+    .slice(0, 3);
 
   return (
     <>
@@ -76,24 +99,14 @@ export default async function PropertyDetailsPage({ params }: PageProps) {
             {/* Left Column - Large Image Showcase & Details (8/12 cols) */}
             <div className="lg:col-span-8 space-y-10">
               
-              {/* Image Container with Zoom effect on hover */}
-              <div className="relative w-full aspect-[16/10] overflow-hidden rounded-xl bg-luxury-dark border border-luxury-sand/20 shadow-2xl group">
-                <Image
-                  src={property.image}
-                  alt={property.title}
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 800px"
-                  className="object-cover transition-transform duration-1000 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-60" />
-              </div>
+              {/* Interactive Image Gallery */}
+              <PropertyImageGallery images={property.images} title={property.title} />
 
               {/* Title, Category & Location */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2.5">
                   <span className="px-3 py-1 bg-gold-100 text-gold-700 text-[9px] uppercase tracking-widest font-bold rounded-sm">
-                    {property.type}
+                    {category}
                   </span>
                   <div className="flex items-center gap-1 text-[10px] text-luxury-charcoal/50 uppercase tracking-widest font-semibold">
                     <svg className="w-3.5 h-3.5 text-gold-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,7 +133,7 @@ export default async function PropertyDetailsPage({ params }: PageProps) {
                   </div>
                   <div>
                     <span className="text-[9px] uppercase tracking-wider text-luxury-charcoal/40 font-semibold block">Bedrooms</span>
-                    <span className="text-sm font-semibold text-luxury-charcoal">{property.beds} Bedrooms</span>
+                    <span className="text-sm font-semibold text-luxury-charcoal">{beds} Bedrooms</span>
                   </div>
                 </div>
 
@@ -132,7 +145,7 @@ export default async function PropertyDetailsPage({ params }: PageProps) {
                   </div>
                   <div>
                     <span className="text-[9px] uppercase tracking-wider text-luxury-charcoal/40 font-semibold block">Bathrooms</span>
-                    <span className="text-sm font-semibold text-luxury-charcoal">{property.baths} Bathrooms</span>
+                    <span className="text-sm font-semibold text-luxury-charcoal">{baths} Bathrooms</span>
                   </div>
                 </div>
 
@@ -144,7 +157,7 @@ export default async function PropertyDetailsPage({ params }: PageProps) {
                   </div>
                   <div>
                     <span className="text-[9px] uppercase tracking-wider text-luxury-charcoal/40 font-semibold block">Living Area</span>
-                    <span className="text-sm font-semibold text-luxury-charcoal">{property.sqft.toLocaleString()} Sq. Ft.</span>
+                    <span className="text-sm font-semibold text-luxury-charcoal">{sqft.toLocaleString()} Sq. Ft.</span>
                   </div>
                 </div>
 
@@ -196,6 +209,9 @@ export default async function PropertyDetailsPage({ params }: PageProps) {
                 </div>
               </div>
 
+              {/* Reviews & Testimonials Section */}
+              <PropertyReviews propertyId={property._id} initialReviews={property.reviews} />
+
             </div>
 
             {/* Right Column - Pricing & Booking (4/12 cols) */}
@@ -205,7 +221,7 @@ export default async function PropertyDetailsPage({ params }: PageProps) {
               <div className="bg-white border border-luxury-sand/30 rounded-xl p-8 shadow-[0_8px_30px_rgba(0,0,0,0.02)] space-y-4">
                 <div>
                   <span className="text-[9px] uppercase tracking-wider text-luxury-charcoal/40 font-semibold block">Asking Price</span>
-                  <span className="font-serif text-3xl font-semibold text-luxury-charcoal block mt-1">{property.priceStr}</span>
+                  <span className="font-serif text-3xl font-semibold text-luxury-charcoal block mt-1">{priceStr}</span>
                 </div>
                 <div className="pt-4 border-t border-luxury-sand/20 space-y-2">
                   <div className="flex justify-between text-xs font-light">
@@ -214,7 +230,7 @@ export default async function PropertyDetailsPage({ params }: PageProps) {
                   </div>
                   <div className="flex justify-between text-xs font-light">
                     <span className="text-luxury-charcoal/50">Price per Sq. Ft.</span>
-                    <span className="text-luxury-charcoal font-semibold">${Math.round(property.price / property.sqft).toLocaleString()}</span>
+                    <span className="text-luxury-charcoal font-semibold">${Math.round(property.price / sqft).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-xs font-light">
                     <span className="text-luxury-charcoal/50">Property Status</span>
@@ -229,6 +245,26 @@ export default async function PropertyDetailsPage({ params }: PageProps) {
             </div>
 
           </div>
+
+          {/* Related Residences Section */}
+          {relatedResidences.length > 0 && (
+            <div className="border-t border-luxury-sand/20 pt-16 space-y-8">
+              <div className="space-y-2">
+                <span className="text-[10px] font-bold tracking-[0.2em] text-gold-600 uppercase block">
+                  EXCLUSIVE SELECTIONS
+                </span>
+                <h3 className="font-serif text-2xl font-light text-luxury-charcoal">
+                  Related Residences
+                </h3>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                {relatedResidences.map((relatedProp) => (
+                  <PropertyCard key={relatedProp._id} property={relatedProp} />
+                ))}
+              </div>
+            </div>
+          )}
 
         </div>
       </main>

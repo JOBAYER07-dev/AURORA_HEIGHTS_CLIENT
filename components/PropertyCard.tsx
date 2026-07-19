@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { Property } from "@/lib/properties";
+import { Property, formatPrice } from "@/lib/properties";
 export type { Property };
 
 interface PropertyCardProps {
@@ -16,7 +16,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
       {/* Fixed aspect ratio Image Container */}
       <div className="relative w-full aspect-[4/3] overflow-hidden bg-luxury-dark">
         <Image
-          src={property.image}
+          src={property.images?.[0] || "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80"}
           alt={property.title}
           fill
           sizes="(max-w-768px) 100vw, (max-w-1024px) 50vw, 25vw"
@@ -71,12 +71,12 @@ export default function PropertyCard({ property }: PropertyCardProps) {
               Asking Price
             </span>
             <span className="font-serif text-base font-semibold text-luxury-charcoal">
-              {property.priceStr}
+              {formatPrice(property.price)}
             </span>
           </div>
 
           <Link
-            href={`/properties/${property.id}`}
+            href={`/properties/${property._id}`}
             className="px-4 py-2 border border-luxury-charcoal hover:border-gold-500 bg-transparent hover:bg-gold-500 hover:text-white text-luxury-charcoal text-[10px] font-bold uppercase tracking-wider rounded-sm transition-all duration-300 active:scale-[0.97] cursor-pointer text-center"
           >
             View Details

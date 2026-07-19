@@ -38,7 +38,7 @@ export default function Hero() {
   }, []);
 
   return (
-    <section className="relative w-full h-screen min-h-[650px] flex items-center justify-center overflow-hidden bg-luxury-dark select-none">
+    <section className="relative w-full h-[65vh] min-h-[520px] flex items-center justify-center overflow-hidden bg-luxury-dark select-none">
       {/* Slideshow background */}
       <div className="absolute inset-0 z-0">
         {HERO_IMAGES.map((slide, idx) => (
@@ -74,7 +74,7 @@ export default function Hero() {
       </div>
 
       {/* Main Luxury Content Overlay */}
-      <div className="relative z-20 w-full max-w-7xl mx-auto px-6 md:px-12 flex flex-col justify-end h-full pb-20 md:pb-24">
+      <div className="relative z-20 w-full max-w-7xl mx-auto px-6 md:px-12 flex flex-col justify-end h-full pb-16 md:pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
           {/* Tagline & Main Title */}
           <div className="lg:col-span-7 space-y-4 md:space-y-6">
@@ -166,7 +166,7 @@ export default function Hero() {
 
       {/* Floating Scroll Indicator */}
       <a
-        href="#residences"
+        href="#collections"
         className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 group cursor-pointer"
       >
         <span className="text-[9px] uppercase tracking-[0.3em] text-white/40 group-hover:text-gold-300 transition-colors duration-300">

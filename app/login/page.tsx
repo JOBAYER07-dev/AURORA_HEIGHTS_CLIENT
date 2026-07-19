@@ -80,12 +80,13 @@ function LoginFormContent() {
     setError("");
     setShowGoogleModal(true);
 
-    // Minor transition for natural OAuth redirect
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Better Auth resolves relative paths against its own baseURL (http://localhost:5000),
+    // so we must always supply a full http://localhost:3000/... absolute URL.
+    const callbackURL = "http://localhost:3000" + (redirectUrl !== "/" ? redirectUrl : "/explore");
 
     const { error: authError } = await signIn.social({
       provider: "google",
-      callbackURL: redirectUrl,
+      callbackURL,
     });
 
     if (authError) {
