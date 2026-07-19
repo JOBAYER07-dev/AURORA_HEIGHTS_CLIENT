@@ -1,68 +1,21 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 import { fetchProperties, Property, formatPrice } from "@/lib/properties";
-import { useSession, authClient } from "@/lib/auth-client";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import PropertyCategoryChart from "@/components/PropertyCategoryChart";
 
 export default function ManageItemsPage() {
-  const { data: session, isPending: authPending } = useSession();
+  const { session, checkedAuth, isWakingUp, attempts, maxAttempts, isPending } = useAuthGuard("/items/manage");
   const router = useRouter();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const [checkedAuth, setCheckedAuth] = useState(false);
-
-  useEffect(() => {
-    if (authPending) return; // wait for the initial reactive hook to settle
-
-    if (session) {
-      setCheckedAuth(true);
-      return;
-    }
-
-    // authPending is false but session is null — this could be a premature
-    // false from Better Auth, OR the backend (Render free tier) could be
-    // cold-starting and the session fetch is just slow. Poll multiple times
-    // with increasing delay before concluding there's really no session.
-    let cancelled = false;
-    let attempts = 0;
-    const maxAttempts = 5;
-
-    const checkSession = async () => {
-      if (cancelled) return;
-      attempts++;
-      console.log(`[Auth Guard] Session check attempt ${attempts}/${maxAttempts}...`);
-      const { data: freshSession } = await authClient.getSession();
-      console.log('[Auth Guard] Result:', freshSession);
-
-      if (cancelled) return;
-
-      if (freshSession) {
-        setCheckedAuth(true);
-      } else if (attempts < maxAttempts) {
-        // retry with a delay, giving Render's cold start more time
-        setTimeout(checkSession, 800);
-      } else {
-        // exhausted all attempts — genuinely not logged in
-        router.push("/login?redirect=/items/manage");
-      }
-    };
-
-    // Start the first check after a short initial delay
-    const initialTimer = setTimeout(checkSession, 500);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(initialTimer);
-    };
-  }, [session, authPending, router]);
 
   const loadProperties = async () => {
     setLoading(true);
@@ -116,15 +69,30 @@ export default function ManageItemsPage() {
     }
   }, [session]);
 
-  if (authPending || (!session && !checkedAuth)) {
+  if (isPending || !checkedAuth) {
     return (
       <>
         <Navbar />
         <div className="h-[70px] bg-luxury-dark" />
-        <main className="flex-1 bg-luxury-cream min-h-screen flex items-center justify-center">
-          <div className="text-luxury-charcoal/50 text-xs uppercase tracking-widest font-semibold animate-pulse">
-            Verifying Admin Access...
+        <main className="flex-1 bg-luxury-cream min-h-screen flex flex-col items-center justify-center gap-4 px-6 text-center">
+          <div className="text-luxury-charcoal/80 text-sm uppercase tracking-widest font-semibold animate-pulse max-w-md leading-relaxed">
+            {isWakingUp 
+              ? "Waking up the server, this can take up to a minute on first load..." 
+              : "Verifying Admin Access..."}
           </div>
+          {isWakingUp && (
+            <>
+              <div className="text-luxury-charcoal/50 text-xs tracking-wider">
+                Attempt {attempts} of {maxAttempts}
+              </div>
+              <div className="w-64 bg-luxury-sand/20 h-1.5 rounded-full overflow-hidden">
+                <div 
+                  className="bg-gold-500 h-full transition-all duration-500 ease-out" 
+                  style={{ width: `${(attempts / maxAttempts) * 100}%` }}
+                />
+              </div>
+            </>
+          )}
         </main>
         <Footer />
       </>
