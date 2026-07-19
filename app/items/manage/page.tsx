@@ -20,25 +20,48 @@ export default function ManageItemsPage() {
   const [checkedAuth, setCheckedAuth] = useState(false);
 
   useEffect(() => {
-    if (authPending) return;
+    if (authPending) return; // wait for the initial reactive hook to settle
 
-    // authPending just became false — but Better Auth may emit a premature
-    // false before its real session fetch completes. Wait briefly and
-    // re-check via authClient.getSession() (promise-based, not the reactive
-    // hook) before trusting that there's really no session.
-    if (!session) {
-      const timer = setTimeout(async () => {
-        const { data: freshSession } = await authClient.getSession();
-        if (!freshSession) {
-          router.push("/login?redirect=/items/manage");
-        } else {
-          setCheckedAuth(true);
-        }
-      }, 400);
-      return () => clearTimeout(timer);
-    } else {
+    if (session) {
       setCheckedAuth(true);
+      return;
     }
+
+    // authPending is false but session is null — this could be a premature
+    // false from Better Auth, OR the backend (Render free tier) could be
+    // cold-starting and the session fetch is just slow. Poll multiple times
+    // with increasing delay before concluding there's really no session.
+    let cancelled = false;
+    let attempts = 0;
+    const maxAttempts = 5;
+
+    const checkSession = async () => {
+      if (cancelled) return;
+      attempts++;
+      console.log(`[Auth Guard] Session check attempt ${attempts}/${maxAttempts}...`);
+      const { data: freshSession } = await authClient.getSession();
+      console.log('[Auth Guard] Result:', freshSession);
+
+      if (cancelled) return;
+
+      if (freshSession) {
+        setCheckedAuth(true);
+      } else if (attempts < maxAttempts) {
+        // retry with a delay, giving Render's cold start more time
+        setTimeout(checkSession, 800);
+      } else {
+        // exhausted all attempts — genuinely not logged in
+        router.push("/login?redirect=/items/manage");
+      }
+    };
+
+    // Start the first check after a short initial delay
+    const initialTimer = setTimeout(checkSession, 500);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(initialTimer);
+    };
   }, [session, authPending, router]);
 
   const loadProperties = async () => {
