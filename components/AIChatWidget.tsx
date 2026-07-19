@@ -177,7 +177,11 @@ export default function AIChatWidget() {
           </div>
 
           {/* Conversation History */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-luxury-cream/10">
+          <div
+            className="flex-1 overflow-y-auto p-6 space-y-4 bg-luxury-cream/10"
+            data-lenis-prevent
+            onWheel={(e) => e.stopPropagation()}
+          >
             {messages.map((msg, index) => {
               const isUser = msg.role === "user";
               return (
