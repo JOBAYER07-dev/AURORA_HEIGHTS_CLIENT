@@ -7,7 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 import { fetchProperties, Property, formatPrice } from "@/lib/properties";
-import { useSession } from "@/lib/auth-client";
+import { useSession, authClient } from "@/lib/auth-client";
 import PropertyCategoryChart from "@/components/PropertyCategoryChart";
 
 export default function ManageItemsPage() {
@@ -17,21 +17,27 @@ export default function ManageItemsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Route guard: only redirect after authPending has resolved to false.
-  // Prevents premature redirect caused by Better Auth briefly emitting
-  // { isPending: false, data: null } before its internal fetch fires.
-  const pendingSettled = useRef(false);
-  useEffect(() => {
-    if (authPending) {
-      pendingSettled.current = false;
-      return;
-    }
-    pendingSettled.current = true;
-  }, [authPending]);
+  const [checkedAuth, setCheckedAuth] = useState(false);
 
   useEffect(() => {
-    if (pendingSettled.current && !authPending && !session) {
-      router.push("/login?redirect=/items/manage");
+    if (authPending) return;
+
+    // authPending just became false — but Better Auth may emit a premature
+    // false before its real session fetch completes. Wait briefly and
+    // re-check via authClient.getSession() (promise-based, not the reactive
+    // hook) before trusting that there's really no session.
+    if (!session) {
+      const timer = setTimeout(async () => {
+        const { data: freshSession } = await authClient.getSession();
+        if (!freshSession) {
+          router.push("/login?redirect=/items/manage");
+        } else {
+          setCheckedAuth(true);
+        }
+      }, 400);
+      return () => clearTimeout(timer);
+    } else {
+      setCheckedAuth(true);
     }
   }, [session, authPending, router]);
 
@@ -87,7 +93,7 @@ export default function ManageItemsPage() {
     }
   }, [session]);
 
-  if (authPending) {
+  if (authPending || (!session && !checkedAuth)) {
     return (
       <>
         <Navbar />

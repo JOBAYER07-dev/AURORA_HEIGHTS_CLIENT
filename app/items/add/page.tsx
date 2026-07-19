@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { useSession } from "@/lib/auth-client";
+import { useSession, authClient } from "@/lib/auth-client";
 
 export default function AddItemPage() {
   const { data: session, isPending } = useSession();
@@ -24,23 +24,27 @@ export default function AddItemPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  // Route guard: only redirect after isPending has resolved to false.
-  // Using a ref ensures we never redirect on the very first render where
-  // Better Auth briefly emits { isPending: false, data: null } before
-  // its internal session fetch has even fired.
-  const pendingSettled = useRef(false);
-  useEffect(() => {
-    if (isPending) {
-      pendingSettled.current = false;
-      return;
-    }
-    // isPending just became false — mark as settled
-    pendingSettled.current = true;
-  }, [isPending]);
+  const [checkedAuth, setCheckedAuth] = useState(false);
 
   useEffect(() => {
-    if (pendingSettled.current && !isPending && !session) {
-      router.push("/login?redirect=/items/add");
+    if (isPending) return;
+
+    // isPending just became false — but Better Auth may emit a premature
+    // false before its real session fetch completes. Wait briefly and
+    // re-check via authClient.getSession() (promise-based, not the reactive
+    // hook) before trusting that there's really no session.
+    if (!session) {
+      const timer = setTimeout(async () => {
+        const { data: freshSession } = await authClient.getSession();
+        if (!freshSession) {
+          router.push("/login?redirect=/items/add");
+        } else {
+          setCheckedAuth(true);
+        }
+      }, 400);
+      return () => clearTimeout(timer);
+    } else {
+      setCheckedAuth(true);
     }
   }, [session, isPending, router]);
 
@@ -131,7 +135,7 @@ export default function AddItemPage() {
     }
   };
 
-  if (isPending) {
+  if (isPending || (!session && !checkedAuth)) {
     return (
       <>
         <Navbar />
