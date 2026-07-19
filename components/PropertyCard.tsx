@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -11,16 +12,34 @@ interface PropertyCardProps {
 }
 
 export default function PropertyCard({ property }: PropertyCardProps) {
+  const fallbackUrl = "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80";
+  const initialSrc = property.images?.[0] && property.images[0] !== "null" && property.images[0] !== "undefined"
+    ? property.images[0]
+    : fallbackUrl;
+
+  const [imgSrc, setImgSrc] = useState(initialSrc);
+  const [prevPropSrc, setPrevPropSrc] = useState(property.images?.[0]);
+
+  if (property.images?.[0] !== prevPropSrc) {
+    setPrevPropSrc(property.images?.[0]);
+    setImgSrc(initialSrc);
+  }
+
   return (
     <div className="group bg-white rounded-xl overflow-hidden border border-luxury-sand/20 shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(189,155,76,0.08)] hover:border-gold-500/20 transition-all duration-500 flex flex-col h-full">
       {/* Fixed aspect ratio Image Container */}
       <div className="relative w-full aspect-[4/3] overflow-hidden bg-luxury-dark">
         <Image
-          src={property.images?.[0] || "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80"}
+          src={imgSrc}
           alt={property.title}
           fill
           sizes="(max-w-768px) 100vw, (max-w-1024px) 50vw, 25vw"
           className="object-cover transition-transform duration-700 group-hover:scale-105"
+          onError={() => {
+            if (imgSrc !== fallbackUrl) {
+              setImgSrc(fallbackUrl);
+            }
+          }}
         />
         {/* Subtle dark overlay gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

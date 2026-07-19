@@ -11,11 +11,30 @@ interface PropertyImageGalleryProps {
 export default function PropertyImageGallery({ images, title }: PropertyImageGalleryProps) {
   const [activeIdx, setActiveIdx] = useState(0);
 
-  const galleryImages = images && images.length > 0
-    ? images
-    : ["https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80"];
+  const fallbackUrl = "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80";
 
-  const activeImage = galleryImages[activeIdx] || galleryImages[0];
+  const initialImages = images && images.length > 0
+    ? images.map(img => img && img !== "null" && img !== "undefined" ? img : fallbackUrl)
+    : [fallbackUrl];
+
+  const [loadedImages, setLoadedImages] = useState(initialImages);
+  const [prevImages, setPrevImages] = useState(images);
+
+  // Sync state if images prop changes
+  if (images !== prevImages) {
+    setPrevImages(images);
+    setLoadedImages(initialImages);
+  }
+
+  const handleImageError = (index: number) => {
+    if (loadedImages[index] !== fallbackUrl) {
+      const updated = [...loadedImages];
+      updated[index] = fallbackUrl;
+      setLoadedImages(updated);
+    }
+  };
+
+  const activeImage = loadedImages[activeIdx] || loadedImages[0];
 
   return (
     <div className="space-y-4">
@@ -28,14 +47,15 @@ export default function PropertyImageGallery({ images, title }: PropertyImageGal
           priority
           sizes="(max-width: 1024px) 100vw, 800px"
           className="object-cover transition-transform duration-1000 group-hover:scale-[1.02]"
+          onError={() => handleImageError(activeIdx)}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-60" />
       </div>
 
       {/* Row of Thumbnails */}
-      {galleryImages.length > 1 && (
+      {loadedImages.length > 1 && (
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
-          {galleryImages.map((img, idx) => {
+          {loadedImages.map((img, idx) => {
             const isActive = idx === activeIdx;
             return (
               <button
@@ -52,6 +72,7 @@ export default function PropertyImageGallery({ images, title }: PropertyImageGal
                   fill
                   sizes="80px"
                   className="object-cover"
+                  onError={() => handleImageError(idx)}
                 />
               </button>
             );
