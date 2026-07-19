@@ -9,6 +9,7 @@ if (typeof window !== "undefined") {
 export const authClient = createAuthClient({
   baseURL: authUrl,
   fetchOptions: {
+    credentials: "include",
     auth: {
       type: "Bearer",
       token: () => {
