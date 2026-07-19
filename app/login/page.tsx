@@ -81,8 +81,8 @@ function LoginFormContent() {
     setShowGoogleModal(true);
 
     // Better Auth resolves relative paths against its own baseURL (http://localhost:5000),
-    // so we must always supply a full http://localhost:3000/... absolute URL.
-    const callbackURL = "http://localhost:3000" + (redirectUrl !== "/" ? redirectUrl : "/explore");
+    // so we must always supply a full absolute URL.
+    const callbackURL = window.location.origin + (redirectUrl !== "/" ? redirectUrl : "/explore");
 
     const { error: authError } = await signIn.social({
       provider: "google",
